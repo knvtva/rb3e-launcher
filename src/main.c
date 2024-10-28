@@ -56,13 +56,13 @@ short current_running_ios = 0;
 #define LAUNCHER_CONFIG_MAGIC 0x53443A44
 
 // function to phase thru the INI file
-#define RB3E_CONFIG_BOOL(x) ((strcmp(x, "true") == 0 || strcmp(x, "TRUE") == 0 || strcmp(x, "True") == 0 || strcmp(x, "1") == 0) ? 1 : 0)
+#define RB2E_CONFIG_BOOL(x) ((strcmp(x, "true") == 0 || strcmp(x, "TRUE") == 0 || strcmp(x, "True") == 0 || strcmp(x, "1") == 0) ? 1 : 0)
 static int inihandler(void *user, const char *section, const char *name, const char *value) {
     if (value == NULL) return 0;
     // set the user provided value to the value of LegacySDModeLauncher
     bool *legacy_sd_mode = (bool *)user;
     if (strcmp(section, "Wii") == 0 && strcmp(name, "LegacySDMode") == 0)
-        *legacy_sd_mode = RB3E_CONFIG_BOOL(value);
+        *legacy_sd_mode = RB2E_CONFIG_BOOL(value);
     // just return 1 regardless
     return 1;
 }
@@ -119,8 +119,8 @@ int main(void) {
 
     /* display the welcome message */
     printf("\x1b[2;0H");
-    printf("RB3Enhanced Wii Loader - " BUILD_TAG "\n");
-    printf(" https://rb3e.rbenhanced.rocks/\n");
+    printf("RB2Enhanced Wii Loader - " BUILD_TAG "\n");
+    printf(" https://rb2e.rbenhanced.rocks/\n");
     printf(" based on BrainSlug by Chadderz\n\n");
 
     /* spawn lots of worker threads to do stuff */
@@ -131,8 +131,8 @@ int main(void) {
     Event_Wait(&apploader_event_got_disc_id);
     Event_Wait(&apploader_event_got_ios);
 
-    if (strncmp(os0->disc.gamename, "SZB", 3) != 0) {
-        printf("This isn't Rock Band 3! Exiting in 10 seconds...\n");
+    if (strncmp(os0->disc.gamename, "SZA", 3) != 0) {
+        printf("This isn't Rock Band 2! Exiting in 10 seconds...\n");
         goto exit_error;
     }
 
@@ -185,7 +185,7 @@ int main(void) {
     
     Event_Trigger(&main_event_fat_loaded);
 
-    bool has_rb3e = false;
+    bool has_RB2e = false;
     printf("Loading modules...\n");
     Event_Wait(&module_event_list_loaded);
     if (module_list_count == 0) {
@@ -198,8 +198,8 @@ int main(void) {
             module_list_count, module_list_count > 1 ? "s" : "");
         
         for (module = 0; module < module_list_count; module++) {
-            if (strcmp(module_list[module]->name, "RB3Enhanced") == 0)
-                has_rb3e = true;
+            if (strcmp(module_list[module]->name, "RB2Enhanced") == 0)
+                has_RB2e = true;
             
             printf(
                 "\t%s %s by %s (", module_list[module]->name,
@@ -212,8 +212,8 @@ int main(void) {
         puts(" total.\n");
     }
 
-    if (!has_rb3e) {
-        printf("\nRB3Enhanced is not properly installed! You can download it from:\nhttps://rb3e.rbenhanced.rocks/download.html\n\nExiting in 5 seconds...\n");
+    if (!has_RB2e) {
+        printf("\nRB2Enhanced is not properly installed! You can download it from:\nhttps://RB2e.rbenhanced.rocks/download.html\n\nExiting in 5 seconds...\n");
         goto exit_error;
     }
     
@@ -222,19 +222,19 @@ int main(void) {
     Event_Wait(&apploader_event_complete);
     Event_Wait(&module_event_complete);
     
-    // see if rb3e exports the ability to use the config 
-    int *hasconfig_sym = Search_SymbolLookup("RB3E_Launcher_HasConfig");
-    char *config_sym = Search_SymbolLookup("RB3E_Launcher_Config");
+    // see if RB2e exports the ability to use the config 
+    int *hasconfig_sym = Search_SymbolLookup("RB2E_Launcher_HasConfig");
+    char *config_sym = Search_SymbolLookup("RB2E_Launcher_Config");
     // buffer to store the loaded config
     char config_buf[0x1000];
     // check the SD card for a config file
     if (hasconfig_sym != NULL && config_sym != NULL) {
-        FILE *cf = fopen("sd:/rb3/rb3.ini", "r");
+        FILE *cf = fopen("sd:/RB2/RB2.ini", "r");
         if (cf != NULL) {
             printf("Loading config from SD card...\n");
             int r = fread(config_buf, 1, sizeof(config_buf), cf);
             if (r > 0) {
-                // only pass config to the game if rb3/LegacySDModeLauncher is enabled in rb3.ini
+                // only pass config to the game if RB2/LegacySDModeLauncher is enabled in RB2.ini
                 bool legacy_sd_mode = false;
                 if (ini_parse_string(config_buf, inihandler, &legacy_sd_mode) >= 0 && legacy_sd_mode) {
                     // copy from the buffer into the mod
@@ -253,7 +253,7 @@ int main(void) {
     usleep(1000);
     
     if (module_has_error) {
-        printf("\nError loading RB3Enhanced! Try redownloading the mod from:\nhttps://rb3e.rbenhanced.rocks/download.html\n\nExiting in 5 seconds...\n");
+        printf("\nError loading RB2Enhanced! Try redownloading the mod from:\nhttps://RB2e.rbenhanced.rocks/download.html\n\nExiting in 5 seconds...\n");
         goto exit_error;
     }
     
